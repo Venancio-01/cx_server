@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div>
+      <button onClick="handleSend()">send</button>
+      <button onClick="handleRefresh()">refresh</button>
+    </div>
+    <script>
+      let ws = null;
+      const initWebsocket = () => {
+        // 打开一个 web socket  这里端口号和上面监听的需一致
+        ws = new WebSocket("ws://localhost:5679/");
+
+        // Web Socket 已连接上，使用 send() 方法发送数据
+        ws.onopen = function () {
+          ws.send("init");
+        };
+
+        // 这里接受服务器端发过来的消息
+        ws.onmessage = function (e) {
+          const { data } = e;
+          const list = JSON.parse(data).map((item) => JSON.parse(item));
+          console.log(list);
+        };
+      };
+
+      const handleSend = () => {
+        ws.send("init");
+      };
+      const handleRefresh = () => {
+        ws.send("refresh");
+      };
+      initWebsocket();
+    </script>
+  </body>
+</html>
