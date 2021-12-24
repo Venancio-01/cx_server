@@ -1,7 +1,7 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-12-07 14:46:14
- * @LastEditTime: 2021-12-07 14:49:16
+ * @LastEditTime: 2021-12-23 15:19:56
  * @LastEditors: liqingshan
  * @FilePath: \morningcore_server\tools\common.js
  * @Description:
@@ -29,7 +29,14 @@ const json_stringify = (data) => {
   return result;
 };
 
+const extractionResponseData = (data = "") => {
+  const index = data.indexOf(":");
+  const handleData = data.substring(index + 1, data.length);
+  return handleData.split(",").map((item) => item.replace(/\"/g, ""));
+};
+
 module.exports = {
   json_parse,
   json_stringify,
+  extractionResponseData,
 };

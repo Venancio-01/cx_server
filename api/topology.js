@@ -1,7 +1,15 @@
+/*
+ * @Author: liqingshan
+ * @Date: 2021-09-22 14:08:28
+ * @LastEditTime: 2021-12-23 15:43:30
+ * @LastEditors: liqingshan
+ * @FilePath: \morningcore_server\api\topology.js
+ * @Description:
+ */
 const { sendATCommand } = require("./index.js");
 
 // 获取普通节点信息
-const getNodes = async () => {
+const getTopologyNodeInfo = async () => {
   const result = await sendATCommand("AT^DWEBUIRPT=3005");
   const { msg } = result;
   return msg;
@@ -23,7 +31,7 @@ const getWatchNodes = async () => {
 };
 
 module.exports = {
-  getNodes,
+  getTopologyNodeInfo,
   getWatchNodes,
   getAdjacentNodes,
 };

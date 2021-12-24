@@ -16,6 +16,7 @@
     "koa-bodyparser": "^4.3.0",
     "koa-router": "^10.1.1",
     "koa2-cors": "^2.0.6",
+    "lodash": "^4.17.21",
     "nodejs-websocket": "^1.7.2",
     "nodemon": "^2.0.12",
     "pinyin-pro": "^3.3.1",

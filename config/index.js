@@ -11,10 +11,6 @@ const WEBSOCKET_PORT = 35679;
 const UDP_ADDRESS = broadcastAddress;
 const API_BASE = process.env.NODE_ENV == "production" ? "http://i7vmyseg.dnat.tech/" : "127.0.0.1";
 
-console.log(IP, "IP");
-console.log(netmask, "netmask");
-console.log(UDP_ADDRESS, "UDP_ADDRESS");
-
 module.exports = {
   UDP_PORT,
   UDP_ADDRESS,
