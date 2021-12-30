@@ -1,7 +1,7 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-09-22 10:08:48
- * @LastEditTime: 2021-12-23 14:24:28
+ * @LastEditTime: 2021-12-29 17:43:42
  * @LastEditors: liqingshan
  * @FilePath: \morningcore_server\methods\UDP\index.js
  * @Description:
@@ -9,6 +9,8 @@
 const dgram = require("dgram");
 const { json_parse } = require("../../tools/common");
 const { UDP_PORT, UDP_ADDRESS } = require("../../config/index");
+const { json_stringify } = require("../../tools/common");
+const logger = require("../../tools/logger");
 
 const udp_client = dgram.createSocket("udp4");
 
@@ -22,7 +24,7 @@ const udp_client = dgram.createSocket("udp4");
 const sendUDPMessage = ({ port = UDP_PORT, address = UDP_ADDRESS, data }) => {
   const stringifyData = JSON.stringify(data);
   udp_client.send(stringifyData, 0, stringifyData.length, port, address, (err) => {
-    console.log(err, "UDP Message Send Error");
+    if (err) console.log(err, "UDP Message Send Error");
   });
 };
 
@@ -56,6 +58,11 @@ udp_client.on("message", async (msg, rinfo) => {
   const { port: senderPort, address: senderIP } = rinfo;
   const { type, params = [] } = data;
 
+  if (global.loggerSwitch) {
+    logger.info(json_stringify({ data, senderPort, senderIP }));
+  }
+
+  console.log(type, "type");
   console.log(senderIP, "sender IP");
 
   // 广播获取到的拓扑图节点信息

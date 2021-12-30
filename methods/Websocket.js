@@ -1,3 +1,11 @@
+/*
+ * @Author: liqingshan
+ * @Date: 2021-09-22 10:10:20
+ * @LastEditTime: 2021-12-29 14:39:34
+ * @LastEditors: liqingshan
+ * @FilePath: \morningcore_server\methods\Websocket.js
+ * @Description:
+ */
 const ws = require("nodejs-websocket");
 const { WEBSOCKET_PORT } = require("../config/index.js");
 const { sendUDPMessage } = require("./UDP/index.js");
@@ -27,7 +35,6 @@ const websocket = ws.createServer((connection) => {
   });
 
   connection.on("error", (error) => {
-    console.log(error, "error");
     console.log("Connection error");
   });
 });

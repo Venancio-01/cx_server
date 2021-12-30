@@ -1,7 +1,7 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-12-23 10:19:45
- * @LastEditTime: 2021-12-24 15:03:17
+ * @LastEditTime: 2021-12-29 17:19:42
  * @LastEditors: liqingshan
  * @FilePath: \morningcore_server\methods\Koa\methods.js
  * @Description:
@@ -10,8 +10,6 @@ const shell = require("shelljs");
 const fs = require("fs");
 const { pinyin } = require("pinyin-pro");
 const { sendATCommand } = require("../../api/index");
-const { extractionResponseData } = require("../../tools/common");
-const { difference } = require("lodash");
 
 /**
  * @description: 获取设备的健康信息
@@ -53,11 +51,16 @@ const executeShellCommands = (command) => {
  */
 const generateMapDir = (city) => {
   const py = pinyin(city, { toneType: "none", type: "array" }).join("");
-  const oldPath = "/data/lighttpd/www/htdocs/mapcache/*";
-  const newPath = `/data/lighttpd/www/htdocs/${py}`;
+  let oldPath = "";
+  let newPath = "";
 
-  //   const oldPath = "D:\\Projects\\morningcore_webui\\public\\mapcache\\*";
-  //   const newPath = `D:\\Projects\\morningcore_webui\\public\\${py}`;
+  if (process.env.NODE_ENV == "production") {
+    oldPath = "D:\\Projects\\morningcore_webui\\public\\mapcache\\*";
+    newPath = `D:\\Projects\\morningcore_webui\\public\\${py}`;
+  } else {
+    oldPath = "/data/lighttpd/www/htdocs/mapcache/*";
+    newPath = `/data/lighttpd/www/htdocs/${py}`;
+  }
 
   // 如果不存在，则新建文件夹
   if (!fs.existsSync(newPath)) {
@@ -75,8 +78,7 @@ const generateMapDir = (city) => {
 const deleteMapDir = (city) => {
   const py = pinyin(city, { toneType: "none", type: "array" }).join("");
 
-  //   const path = `D:\\Projects\\morningcore_webui\\public\\${py}`;
-  const path = `/data/lighttpd/www/htdocs/${py}`;
+  const path = process.env.NODE_ENV == "production" ? `D:\\Projects\\morningcore_webui\\public\\${py}` : `/data/lighttpd/www/htdocs/${py}`;
 
   // 如果存在，则删除
   if (fs.existsSync(path)) {
@@ -84,30 +86,41 @@ const deleteMapDir = (city) => {
   }
 };
 
+/**
+ * @description: 清除日志目录下的日志文件
+ * @param {*}
+ * @return {*}
+ */
+const clearLogInfo = () => {
+  const path = process.env.NODE_ENV == "production" ? `D:\\Projects\\morningcore_server\\logs` : `/data/local/log/udp_logs`;
+  shell.rm("-rf", path);
+};
+
 const getDevList = async () => {
   const deviceList = [];
-  const result = await sendATCommand("AT^DEVLIST?");
-  const arr = extractionResponseData(result.msg[0]);
-  const idList = arr.filter((item, index) => index > 0);
+  const { msg, success, response } = await sendATCommand("AT^DEVLIST?");
+  if (success) {
+    const idList = msg.filter((item, index) => index > 0);
 
-  for (let i = 0; i < idList.length; i++) {
-    const sn = idList[i];
-    const [success, result] = await getDevInfo(sn);
-    if (success) deviceList.push(result);
+    for (let i = 0; i < idList.length; i++) {
+      const sn = idList[i];
+      const [success, result] = await getDevInfo(sn);
+      if (success) deviceList.push(result);
+    }
+
+    return [success, deviceList];
+  } else {
+    return [success, response];
   }
-
-  return deviceList;
 };
 
 const getDevInfo = async (id) => {
-  const result = await sendATCommand(`AT^GETDEV=${id}`);
-  const success = result.msg[0].includes("^GETDEV");
+  const { msg, success } = await sendATCommand(`AT^GETDEV=${id}`);
   let data = null;
   if (success) {
-    const arr = extractionResponseData(result.msg[0]);
-    const deviceId = arr[0] || "";
-    const name = arr[1] ? decodeURI(arr[1]) : "";
-    const ip = arr[2] || "";
+    const deviceId = msg[0] || "";
+    const name = msg[1] || "";
+    const ip = msg[2] || "";
     data = {
       name: `${name}:${deviceId}`,
       ip,
@@ -124,4 +137,5 @@ module.exports = {
   generateMapDir,
   deleteMapDir,
   getDevList,
+  clearLogInfo,
 };

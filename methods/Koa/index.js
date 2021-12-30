@@ -5,7 +5,7 @@ const bodyParser = require("koa-bodyparser");
 const { sendUDPMessage } = require("../UDP/index.js");
 const { getSweepInfo, getSweepMessage } = require("../../api/sweep.js");
 const { KOA_PORT } = require("../../config/index.js");
-const { getHealthInfo, executeShellCommands, generateMapDir, deleteMapDir, getDevList } = require("./methods");
+const { getHealthInfo, executeShellCommands, generateMapDir, deleteMapDir, getDevList, clearLogInfo } = require("./methods");
 
 const app = new Koa();
 const router = new Router();
@@ -114,13 +114,44 @@ router.post("/deleteMapDir", (ctx) => {
  * @return {*}
  */
 router.get("/getDevList", async (ctx) => {
-  const result = await getDevList();
+  const [success, result] = await getDevList();
+  ctx.body = {
+    code: success ? 0 : 500,
+    data: result,
+    message: success ? "success" : "fail",
+  };
+});
+
+/**
+ * @description: 清除日志目录下的日志文件
+ * @param {*}
+ * @return {*}
+ */
+router.get("/toggleLoggerSwitch", async (ctx) => {
+  global.loggerSwitch = !global.loggerSwitch;
+  const msg = global.loggerSwitch ? "logger is open" : "logger is off";
+  ctx.body = {
+    code: 0,
+    data: msg,
+    message: "success",
+  };
+});
+
+/**
+ * @description: 清除日志目录下的日志文件
+ * @param {*}
+ * @return {*}
+ */
+router.get("/clearLogInfo", async (ctx) => {
+  const result = await clearLogInfo();
   ctx.body = {
     code: 0,
     data: result,
     message: "success",
   };
 });
+
+// loggerSwitch
 
 app.use(router.routes()); //作用：启动路由
 app.use(router.allowedMethods());

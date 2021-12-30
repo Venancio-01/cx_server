@@ -1,10 +1,18 @@
+/*
+ * @Author: liqingshan
+ * @Date: 2021-10-29 16:00:34
+ * @LastEditTime: 2021-12-28 16:42:30
+ * @LastEditors: liqingshan
+ * @FilePath: \morningcore_server\api\device.js
+ * @Description:
+ */
 const { sendATCommand } = require("./index.js");
 
 //  获取当前节点电台ID、名称
 const getCurrentDevice = async () => {
-  const result = await sendATCommand("AT^CURDEV?");
-  const { msg } = result;
-  return msg[0];
+  const { msg } = await sendATCommand("AT^CURDEV?");
+  console.log(msg, "getCurrentDevice");
+  return msg;
 };
 
 module.exports = {

@@ -1,7 +1,7 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-12-23 10:19:19
- * @LastEditTime: 2021-12-23 15:45:30
+ * @LastEditTime: 2021-12-30 09:34:58
  * @LastEditors: liqingshan
  * @FilePath: \morningcore_server\methods\UDP\methods.js
  * @Description:
@@ -15,6 +15,7 @@ const { getCurrentDevice } = require("../../api/device.js");
 const generateCoordinates = require("../GPS.js");
 const { IP: localIP } = require("../../config/index.js");
 const { json_stringify } = require("../../tools/common");
+const logger = require("../../tools/logger");
 
 let topologyContent = [];
 let mapContent = [];
@@ -26,11 +27,14 @@ let timer = null;
  * @return {*}
  */
 const handleReceiveTopologyUDPmessages = ({ result = null, isWatchNode = false, deviceInfo = null }) => {
-  console.log("type:topology");
+  const parseDeviceInfo = {
+    ...deviceInfo,
+    name: deviceInfo.name ? decodeURIComponent(deviceInfo.name) : "",
+  };
   const response = {
     result,
     isWatchNode,
-    deviceInfo,
+    deviceInfo: parseDeviceInfo,
   };
   topologyContent.push(response);
   const data = {
@@ -70,9 +74,12 @@ const broadcastNodeInfo = async (senderIP, senderPort) => {
     topologyContent = [];
   }
 
+  // 查询是否监听节点
+  const isWatch = await getWatchNodes();
+  // 查询本机设备信息
+  const deviceInfo = await getLocalDeviceInfo();
+  // 查询 3005 拓扑图节点数据
   const nodes = await findCompleteTopologyNodeInfo();
-
-  console.log(nodes, "nodes");
 
   const adjacentNodesInfoList = [];
 
@@ -86,8 +93,6 @@ const broadcastNodeInfo = async (senderIP, senderPort) => {
     }
   }
 
-  const isWatch = await getWatchNodes();
-
   const processNodes = nodes.reduce((prev, node, index) => {
     if (index == 0) {
       prev.push(node);
@@ -100,9 +105,6 @@ const broadcastNodeInfo = async (senderIP, senderPort) => {
 
     return prev;
   }, []);
-
-  // 设备信息
-  const deviceInfo = await getLocalDeviceInfo();
 
   const data = {
     type: "receive topology",
@@ -130,7 +132,7 @@ const broadcastMapInfo = async (senderIP, senderPort) => {
   } catch (err) {}
 
   const data = {
-    status: 10101,
+    type: "receive map",
     coordinate,
   };
   sendUDPMessage({ port: senderPort, address: senderIP, data });
@@ -157,13 +159,20 @@ const broadcastSynchronizeParameter = (senderIP, params) => {
  * @param {*}
  * @return {*}
  */
+
+let topology_timer = null;
 const findCompleteTopologyNodeInfo = () => {
+  clearTimeout(topology_timer);
   return new Promise(async (res, rej) => {
-    const nodes = await getTopologyNodeInfo();
-    const hasOk = nodes.some((item) => item == "OK");
-    if (!hasOk) res(findCompleteTopologyNodeInfo());
-    else {
-      const processMsg = nodes.filter((item) => item !== "OK" && item.includes("DWEBUIRPT"));
+    const response = await getTopologyNodeInfo();
+    const { hasOK, msg } = response;
+    if (!hasOK) {
+      topology_timer = setTimeout(() => {
+        res(findCompleteTopologyNodeInfo());
+      }, 300);
+    } else {
+      if (global.loggerSwitch) logger.info(json_stringify(response));
+      const processMsg = msg.filter((item) => item !== "OK" && item.includes("DWEBUIRPT"));
       res(processMsg);
     }
   });
@@ -176,8 +185,8 @@ const findCompleteTopologyNodeInfo = () => {
  */
 const getLocalDeviceInfo = async () => {
   const deviceInfo = await getCurrentDevice();
-  const [id, name] = deviceInfo.replace("^CURDEV:", "").split(",");
-  return { id, name };
+  const [id, name] = deviceInfo;
+  return { id, name: name ? encodeURIComponent(name) : "" };
 };
 
 /**
