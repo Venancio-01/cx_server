@@ -1,7 +1,7 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-12-23 10:19:19
- * @LastEditTime: 2021-12-30 09:34:58
+ * @LastEditTime: 2021-12-30 17:38:42
  * @LastEditors: liqingshan
  * @FilePath: \morningcore_server\methods\UDP\methods.js
  * @Description:
@@ -50,7 +50,6 @@ const handleReceiveTopologyUDPmessages = ({ result = null, isWatchNode = false, 
  * @return {*}
  */
 const handleReceiveMapUDPmessages = ({ coordinate = null }) => {
-  console.log("type:map");
   const response = {
     coordinate,
   };
@@ -76,35 +75,45 @@ const broadcastNodeInfo = async (senderIP, senderPort) => {
 
   // 查询是否监听节点
   const isWatch = await getWatchNodes();
+
   // 查询本机设备信息
   const deviceInfo = await getLocalDeviceInfo();
+
   // 查询 3005 拓扑图节点数据
-  const nodes = await findCompleteTopologyNodeInfo();
+  const nodes = await findCompleteTopologyNodeInfo(isWatch);
 
-  const adjacentNodesInfoList = [];
+  console.log(nodes, "nodes");
+  console.log(isWatch, "isWatch");
+  console.log(inListenState, "inListenState");
+  console.log(topologyData, "topologyData");
 
-  for (let i = 0; i < nodes.length; i++) {
-    const item = nodes[i];
-    const paramArr = item.split(",");
-    const isLocal = paramArr[1] == "1";
-    if (!isLocal) {
-      const sn = paramArr[paramArr.length - 1].split("|")[0];
-      adjacentNodesInfoList.push(await getAdjacentNodes(sn));
+  let processNodes = nodes;
+  if (!isWatch) {
+    const adjacentNodesInfoList = [];
+
+    for (let i = 0; i < nodes.length; i++) {
+      const item = nodes[i];
+      const paramArr = item.split(",");
+      const isLocal = paramArr[1] == "1";
+      if (!isLocal) {
+        const sn = paramArr[paramArr.length - 1].split("|")[0];
+        adjacentNodesInfoList.push(await getAdjacentNodes(sn));
+      }
     }
+
+    processNodes = nodes.reduce((prev, node, index) => {
+      if (index == 0) {
+        prev.push(node);
+      } else {
+        const [, , , ...info] = adjacentNodesInfoList[index - 1].split(",");
+        const item = `${node},${info.join(",")}`;
+
+        prev.push(item);
+      }
+
+      return prev;
+    }, []);
   }
-
-  const processNodes = nodes.reduce((prev, node, index) => {
-    if (index == 0) {
-      prev.push(node);
-    } else {
-      const [, , , ...info] = adjacentNodesInfoList[index - 1].split(",");
-      const item = `${node},${info.join(",")}`;
-
-      prev.push(item);
-    }
-
-    return prev;
-  }, []);
 
   const data = {
     type: "receive topology",
@@ -161,19 +170,48 @@ const broadcastSynchronizeParameter = (senderIP, params) => {
  */
 
 let topology_timer = null;
-const findCompleteTopologyNodeInfo = () => {
+let topologyData = []; // 保存下拓扑图数据
+let isWatch_timer = null;
+let inListenState = false; // 是否处在监听状态
+const findCompleteTopologyNodeInfo = (isWatch) => {
   clearTimeout(topology_timer);
   return new Promise(async (res, rej) => {
-    const response = await getTopologyNodeInfo();
-    const { hasOK, msg } = response;
-    if (!hasOK) {
-      topology_timer = setTimeout(() => {
-        res(findCompleteTopologyNodeInfo());
-      }, 300);
+    if (isWatch) {
+      if (inListenState) {
+        res(topologyData);
+      } else {
+        const response = await getTopologyNodeInfo();
+        const { msg, success } = response;
+        if (success) {
+          const TEN_MINS = 1000 * 60 * 10;
+          topologyData = msg.filter((item) => item !== "OK" && item.includes("DWEBUIRPT"));
+          inListenState = true;
+          isWatch_timer = setTimeout(() => {
+            inListenState = false;
+            clearInterval(isWatch_timer);
+          }, TEN_MINS);
+        }
+        res(topologyData);
+      }
     } else {
-      if (global.loggerSwitch) logger.info(json_stringify(response));
-      const processMsg = msg.filter((item) => item !== "OK" && item.includes("DWEBUIRPT"));
-      res(processMsg);
+      clearTimeout(topology_timer);
+      inListenState = false;
+      const response = await getTopologyNodeInfo();
+      const { msg, success } = response;
+      if (success) {
+        const hasOK = msg.length > 1 && msg[msg.length - 1] == "OK" && msg.some((item) => item.includes("^DWEBUIRPT:3005"));
+        if (!hasOK) {
+          topology_timer = setTimeout(() => {
+            res(findCompleteTopologyNodeInfo(isWatch));
+          }, 100);
+        } else {
+          if (global.loggerSwitch) logger.info(json_stringify(response));
+          const processMsg = msg.filter((item) => item !== "OK" && item.includes("DWEBUIRPT"));
+          res(processMsg);
+        }
+      } else {
+        res(topologyData);
+      }
     }
   });
 };

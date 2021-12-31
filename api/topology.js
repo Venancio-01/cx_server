@@ -1,7 +1,7 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-09-22 14:08:28
- * @LastEditTime: 2021-12-28 17:54:41
+ * @LastEditTime: 2021-12-30 16:34:30
  * @LastEditors: liqingshan
  * @FilePath: \morningcore_server\api\topology.js
  * @Description:
@@ -25,7 +25,7 @@ const getAdjacentNodes = async (sn) => {
 const getWatchNodes = async () => {
   const result = await sendATCommand("AT^DWEBUISET=2008");
   const { msg } = result;
-  const isWatch = msg[0] == 1;
+  const isWatch = msg[1] == 1;
   return isWatch;
 };
 

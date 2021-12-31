@@ -1,7 +1,7 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-12-23 10:19:45
- * @LastEditTime: 2021-12-29 17:19:42
+ * @LastEditTime: 2021-12-30 17:03:00
  * @LastEditors: liqingshan
  * @FilePath: \morningcore_server\methods\Koa\methods.js
  * @Description:
@@ -10,6 +10,7 @@ const shell = require("shelljs");
 const fs = require("fs");
 const { pinyin } = require("pinyin-pro");
 const { sendATCommand } = require("../../api/index");
+const { difference } = require("lodash");
 
 /**
  * @description: 获取设备的健康信息
@@ -96,19 +97,33 @@ const clearLogInfo = () => {
   shell.rm("-rf", path);
 };
 
+let deviceList = [];
 const getDevList = async () => {
-  const deviceList = [];
   const { msg, success, response } = await sendATCommand("AT^DEVLIST?");
   if (success) {
-    const idList = msg.filter((item, index) => index > 0);
+    if (msg[0] == 0) {
+      return [success, []];
+    } else {
+      const idList = msg.filter((item, index) => index > 0);
+      const oldIdList = deviceList.map((item) => item.id);
 
-    for (let i = 0; i < idList.length; i++) {
-      const sn = idList[i];
-      const [success, result] = await getDevInfo(sn);
-      if (success) deviceList.push(result);
+      // 	// 检查是否有新增的设备
+      const addList = difference(idList, oldIdList);
+      // 	// 检查是否有移除的设备
+      const removeList = difference(oldIdList, idList);
+
+      if (addList.length > 0) {
+        for (let i = 0; i < addList.length; i++) {
+          const sn = addList[i];
+          const [success, result] = await getDevInfo(sn);
+          if (success) deviceList.push(result);
+        }
+      } else if (removeList.length > 0) {
+        deviceList = deviceList.filter((item) => !removeList.includes(item.id));
+      }
+
+      return [success, deviceList];
     }
-
-    return [success, deviceList];
   } else {
     return [success, response];
   }

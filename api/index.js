@@ -63,13 +63,11 @@ const parseStringTypeResponse = (response, needRawData) => {
     .filter((item) => item.length > 0 && item.replace(/\\/g, ""));
 
   const success = !hasResponseErr(parameterArr[0]);
-  const hasOK = processedData.includes("OK");
 
   return {
     retcode,
     msg: success ? (needRawData ? parameterArr : extractionResponseData(parameterArr)) : parameterArr,
     success,
-    hasOK,
   };
 };
 
