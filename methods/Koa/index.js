@@ -5,7 +5,7 @@ const bodyParser = require("koa-bodyparser");
 const { sendUDPMessage } = require("../UDP/index.js");
 const { getSweepInfo, getSweepMessage } = require("../../api/sweep.js");
 const { KOA_PORT } = require("../../config/index.js");
-const { getHealthInfo, executeShellCommands, generateMapDir, deleteMapDir, getDevList, clearLogInfo } = require("./methods");
+const { getHealthInfo, executeShellCommands, generateMapDir, deleteMapDir, getDevList, clearLogInfo, getModeChangeStatus, getWifiChangeStatus } = require("./methods");
 
 const app = new Koa();
 const router = new Router();
@@ -151,7 +151,33 @@ router.get("/clearLogInfo", async (ctx) => {
   };
 });
 
-// loggerSwitch
+/**
+ * @description: 获取模式切换状态
+ * @param {*}
+ * @return {*}
+ */
+router.get("/getModeChangeStatus", async (ctx) => {
+  const [success, result] = await getModeChangeStatus();
+  ctx.body = {
+    code: success ? 0 : 500,
+    data: result,
+    message: success ? "success" : "fail",
+  };
+});
+
+/**
+ * @description: 获取模式切换状态
+ * @param {*}
+ * @return {*}
+ */
+router.get("/getWifiChangeStatus", async (ctx) => {
+  const [success, result] = await getWifiChangeStatus();
+  ctx.body = {
+    code: success ? 0 : 500,
+    data: result,
+    message: success ? "success" : "fail",
+  };
+});
 
 app.use(router.routes()); //作用：启动路由
 app.use(router.allowedMethods());

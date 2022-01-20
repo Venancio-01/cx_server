@@ -1,7 +1,7 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-12-23 10:19:45
- * @LastEditTime: 2021-12-30 17:03:00
+ * @LastEditTime: 2022-01-19 15:55:48
  * @LastEditors: liqingshan
  * @FilePath: \morningcore_server\methods\Koa\methods.js
  * @Description:
@@ -10,7 +10,7 @@ const shell = require("shelljs");
 const fs = require("fs");
 const { pinyin } = require("pinyin-pro");
 const { sendATCommand } = require("../../api/index");
-const { difference } = require("lodash");
+const { difference, uniqBy } = require("lodash");
 
 /**
  * @description: 获取设备的健康信息
@@ -122,6 +122,9 @@ const getDevList = async () => {
         deviceList = deviceList.filter((item) => !removeList.includes(item.id));
       }
 
+      // 去重
+      deviceList = uniqBy(deviceList, "id");
+
       return [success, deviceList];
     }
   } else {
@@ -146,6 +149,22 @@ const getDevInfo = async (id) => {
   return [success, data];
 };
 
+const getModeChangeStatus = () => {
+  const result = shell.exec("getprop sys.lc.setting");
+  const { stdout, stderr, code } = result;
+  console.log(stdout, "stdout");
+  console.log(code, "code");
+  return [true, stdout];
+};
+
+const getWifiChangeStatus = () => {
+  const result = shell.exec("getprop system.boot.wifi.mode");
+  const { stdout, stderr, code } = result;
+  console.log(stdout, "stdout");
+  console.log(code, "code");
+  return [true, stdout];
+};
+
 module.exports = {
   getHealthInfo,
   executeShellCommands,
@@ -153,4 +172,6 @@ module.exports = {
   deleteMapDir,
   getDevList,
   clearLogInfo,
+  getModeChangeStatus,
+  getWifiChangeStatus,
 };

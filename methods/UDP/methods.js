@@ -1,7 +1,7 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-12-23 10:19:19
- * @LastEditTime: 2021-12-30 17:38:42
+ * @LastEditTime: 2021-12-31 10:15:09
  * @LastEditors: liqingshan
  * @FilePath: \morningcore_server\methods\UDP\methods.js
  * @Description:
@@ -177,22 +177,21 @@ const findCompleteTopologyNodeInfo = (isWatch) => {
   clearTimeout(topology_timer);
   return new Promise(async (res, rej) => {
     if (isWatch) {
-      if (inListenState) {
-        res(topologyData);
-      } else {
-        const response = await getTopologyNodeInfo();
-        const { msg, success } = response;
-        if (success) {
-          const TEN_MINS = 1000 * 60 * 10;
-          topologyData = msg.filter((item) => item !== "OK" && item.includes("DWEBUIRPT"));
-          inListenState = true;
-          isWatch_timer = setTimeout(() => {
-            inListenState = false;
-            clearInterval(isWatch_timer);
-          }, TEN_MINS);
-        }
-        res(topologyData);
+      if (inListenState) return res(topologyData);
+
+      const response = await getTopologyNodeInfo();
+      const { msg, success } = response;
+      console.log(msg, "msg");
+      if (success) {
+        const TEN_MINS = 1000 * 60 * 10;
+        topologyData = msg.filter((item) => item !== "OK" && item.includes("DWEBUIRPT"));
+        inListenState = true;
+        isWatch_timer = setTimeout(() => {
+          inListenState = false;
+          clearInterval(isWatch_timer);
+        }, TEN_MINS);
       }
+      res(topologyData);
     } else {
       clearTimeout(topology_timer);
       inListenState = false;
