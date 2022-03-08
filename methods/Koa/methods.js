@@ -1,7 +1,7 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-12-23 10:19:45
- * @LastEditTime: 2022-01-19 15:55:48
+ * @LastEditTime: 2022-02-24 14:36:55
  * @LastEditors: liqingshan
  * @FilePath: \morningcore_server\methods\Koa\methods.js
  * @Description:
@@ -36,7 +36,6 @@ const executeShellCommands = (command) => {
   return new Promise((resolve, reject) => {
     const result = shell.exec(command);
     const { stdout, stderr, code } = result;
-
     if (code == 0) {
       resolve(stdout);
     } else {
@@ -152,16 +151,12 @@ const getDevInfo = async (id) => {
 const getModeChangeStatus = () => {
   const result = shell.exec("getprop sys.lc.setting");
   const { stdout, stderr, code } = result;
-  console.log(stdout, "stdout");
-  console.log(code, "code");
   return [true, stdout];
 };
 
 const getWifiChangeStatus = () => {
   const result = shell.exec("getprop system.boot.wifi.mode");
   const { stdout, stderr, code } = result;
-  console.log(stdout, "stdout");
-  console.log(code, "code");
   return [true, stdout];
 };
 

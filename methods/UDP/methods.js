@@ -1,7 +1,7 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-12-23 10:19:19
- * @LastEditTime: 2021-12-31 10:15:09
+ * @LastEditTime: 2022-02-10 09:23:43
  * @LastEditors: liqingshan
  * @FilePath: \morningcore_server\methods\UDP\methods.js
  * @Description:
@@ -169,19 +169,18 @@ const broadcastSynchronizeParameter = (senderIP, params) => {
  * @return {*}
  */
 
-let topology_timer = null;
+// let topology_timer = null;
 let topologyData = []; // 保存下拓扑图数据
 let isWatch_timer = null;
 let inListenState = false; // 是否处在监听状态
 const findCompleteTopologyNodeInfo = (isWatch) => {
-  clearTimeout(topology_timer);
+  // clearTimeout(topology_timer);
   return new Promise(async (res, rej) => {
     if (isWatch) {
       if (inListenState) return res(topologyData);
 
       const response = await getTopologyNodeInfo();
       const { msg, success } = response;
-      console.log(msg, "msg");
       if (success) {
         const TEN_MINS = 1000 * 60 * 10;
         topologyData = msg.filter((item) => item !== "OK" && item.includes("DWEBUIRPT"));
@@ -193,16 +192,17 @@ const findCompleteTopologyNodeInfo = (isWatch) => {
       }
       res(topologyData);
     } else {
-      clearTimeout(topology_timer);
+      // clearTimeout(topology_timer);
       inListenState = false;
       const response = await getTopologyNodeInfo();
       const { msg, success } = response;
       if (success) {
         const hasOK = msg.length > 1 && msg[msg.length - 1] == "OK" && msg.some((item) => item.includes("^DWEBUIRPT:3005"));
         if (!hasOK) {
-          topology_timer = setTimeout(() => {
-            res(findCompleteTopologyNodeInfo(isWatch));
-          }, 100);
+          res(findCompleteTopologyNodeInfo(isWatch));
+          // topology_timer = setTimeout(() => {
+          //   res(findCompleteTopologyNodeInfo(isWatch));
+          // }, 100);
         } else {
           if (global.loggerSwitch) logger.info(json_stringify(response));
           const processMsg = msg.filter((item) => item !== "OK" && item.includes("DWEBUIRPT"));
