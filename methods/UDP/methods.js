@@ -1,15 +1,15 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-12-23 10:19:19
- * @LastEditTime: 2022-02-10 09:23:43
+ * @LastEditTime: 2022-03-11 09:52:36
  * @LastEditors: liqingshan
- * @FilePath: \morningcore_server\methods\UDP\methods.js
+ * @FilePath: \cx_server\methods\UDP\methods.js
  * @Description:
  */
 
 const { senWebsocketMessage } = require("../Websocket.js");
 const { sendUDPMessage } = require("./index");
-const { getTopologyNodeInfo, getWatchNodes, getAdjacentNodes } = require("../../api/topology.js");
+const { getTopologyNodeInfo, getWatchNodes, getAdjacentNodes, getPower } = require("../../api/topology.js");
 const { sendATCommand } = require("../../api/index.js");
 const { getCurrentDevice } = require("../../api/device.js");
 const generateCoordinates = require("../GPS.js");
@@ -26,9 +26,10 @@ let timer = null;
  * @param {*}
  * @return {*}
  */
-const handleReceiveTopologyUDPmessages = ({ result = null, isWatchNode = false, deviceInfo = null }) => {
+const handleReceiveTopologyUDPmessages = ({ result = null, isWatchNode = false, deviceInfo = null, power = "" }) => {
   const parseDeviceInfo = {
     ...deviceInfo,
+    power,
     name: deviceInfo.name ? decodeURIComponent(deviceInfo.name) : "",
   };
   const response = {
@@ -79,9 +80,13 @@ const broadcastNodeInfo = async (senderIP, senderPort) => {
   // 查询本机设备信息
   const deviceInfo = await getLocalDeviceInfo();
 
+  // 查询功率
+  const power = await getPower();
+
   // 查询 3005 拓扑图节点数据
   const nodes = await findCompleteTopologyNodeInfo(isWatch);
 
+  console.log(power, "power");
   console.log(nodes, "nodes");
   console.log(isWatch, "isWatch");
   console.log(inListenState, "inListenState");
@@ -120,6 +125,7 @@ const broadcastNodeInfo = async (senderIP, senderPort) => {
     result: processNodes,
     isWatchNode: isWatch,
     deviceInfo,
+    power,
   };
   sendUDPMessage({ port: senderPort, address: senderIP, data });
 };
@@ -192,22 +198,13 @@ const findCompleteTopologyNodeInfo = (isWatch) => {
       }
       res(topologyData);
     } else {
-      // clearTimeout(topology_timer);
       inListenState = false;
       const response = await getTopologyNodeInfo();
       const { msg, success } = response;
       if (success) {
-        const hasOK = msg.length > 1 && msg[msg.length - 1] == "OK" && msg.some((item) => item.includes("^DWEBUIRPT:3005"));
-        if (!hasOK) {
-          res(findCompleteTopologyNodeInfo(isWatch));
-          // topology_timer = setTimeout(() => {
-          //   res(findCompleteTopologyNodeInfo(isWatch));
-          // }, 100);
-        } else {
-          if (global.loggerSwitch) logger.info(json_stringify(response));
-          const processMsg = msg.filter((item) => item !== "OK" && item.includes("DWEBUIRPT"));
-          res(processMsg);
-        }
+        if (global.loggerSwitch) logger.info(json_stringify(response));
+        const processMsg = msg.filter((item) => item !== "OK" && item.includes("DWEBUIRPT"));
+        res(processMsg);
       } else {
         res(topologyData);
       }

@@ -5,7 +5,17 @@ const bodyParser = require("koa-bodyparser");
 const { sendUDPMessage } = require("../UDP/index.js");
 const { getSweepInfo, getSweepMessage } = require("../../api/sweep.js");
 const { KOA_PORT } = require("../../config/index.js");
-const { getHealthInfo, executeShellCommands, generateMapDir, deleteMapDir, getDevList, clearLogInfo, getModeChangeStatus, getWifiChangeStatus } = require("./methods");
+const {
+  getHealthInfo,
+  executeShellCommands,
+  generateMapDir,
+  deleteMapDir,
+  compressMapDir,
+  getDevList,
+  clearLogInfo,
+  getModeChangeStatus,
+  getWifiChangeStatus,
+} = require("./methods");
 
 const app = new Koa();
 const router = new Router();
@@ -105,6 +115,17 @@ router.post("/deleteMapDir", (ctx) => {
   const data = ctx.request.body;
   const { city } = data;
   deleteMapDir(city);
+  ctx.body = "success";
+});
+/**
+ * @description: 压缩上传的地图文件夹
+ * @param {*}
+ * @return {*}
+ */
+router.post("/compressMapDir", (ctx) => {
+  const data = ctx.request.body;
+  const { city } = data;
+  compressMapDir(city);
   ctx.body = "success";
 });
 

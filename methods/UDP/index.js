@@ -1,17 +1,16 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-09-22 10:08:48
- * @LastEditTime: 2021-12-29 17:43:42
+ * @LastEditTime: 2022-03-14 15:40:09
  * @LastEditors: liqingshan
- * @FilePath: \morningcore_server\methods\UDP\index.js
+ * @FilePath: \cx_server\methods\UDP\index.js
  * @Description:
  */
 const dgram = require("dgram");
 const { json_parse } = require("../../tools/common");
-const { UDP_PORT, UDP_ADDRESS } = require("../../config/index");
+const { UDP_PORT, getUDPAddress } = require("../../config/index");
 const { json_stringify } = require("../../tools/common");
 const logger = require("../../tools/logger");
-
 const udp_client = dgram.createSocket("udp4");
 
 /**
@@ -21,7 +20,8 @@ const udp_client = dgram.createSocket("udp4");
  * @param {data} 发送的数据
  * @return {*}
  */
-const sendUDPMessage = ({ port = UDP_PORT, address = UDP_ADDRESS, data }) => {
+const sendUDPMessage = ({ port = UDP_PORT, address = getUDPAddress(), data }) => {
+  if (address === "") return;
   const stringifyData = JSON.stringify(data);
   udp_client.send(stringifyData, 0, stringifyData.length, port, address, (err) => {
     if (err) console.log(err, "UDP Message Send Error");

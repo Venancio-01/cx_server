@@ -1,9 +1,9 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-09-22 14:08:28
- * @LastEditTime: 2021-12-30 16:34:30
+ * @LastEditTime: 2022-03-11 10:38:48
  * @LastEditors: liqingshan
- * @FilePath: \morningcore_server\api\topology.js
+ * @FilePath: \cx_server\api\topology.js
  * @Description:
  */
 const { sendATCommand } = require("./index.js");
@@ -28,9 +28,17 @@ const getWatchNodes = async () => {
   const isWatch = msg[1] == 1;
   return isWatch;
 };
+// 获取发送功率
+const getPower = async () => {
+  const result = await sendATCommand("AT^DWEBUISET=2009");
+  const { msg } = result;
+  const power = msg ? msg[2] : "";
+  return power;
+};
 
 module.exports = {
   getTopologyNodeInfo,
   getWatchNodes,
   getAdjacentNodes,
+  getPower,
 };

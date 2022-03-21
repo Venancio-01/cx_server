@@ -1,9 +1,9 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-12-23 10:19:45
- * @LastEditTime: 2022-02-24 14:36:55
+ * @LastEditTime: 2022-03-16 10:04:59
  * @LastEditors: liqingshan
- * @FilePath: \morningcore_server\methods\Koa\methods.js
+ * @FilePath: \cx_server\methods\Koa\methods.js
  * @Description:
  */
 const shell = require("shelljs");
@@ -87,6 +87,21 @@ const deleteMapDir = (city) => {
 };
 
 /**
+ * @description: 删除由 mapcache 复制的地图文件夹
+ * @param {*}
+ * @return {*}
+ */
+const compressMapDir = (city) => {
+  const py = pinyin(city, { toneType: "none", type: "array" }).join("");
+  const path = process.env.NODE_ENV == "production" ? `D:\\Projects\\morningcore_webui\\public\\${py}` : `/data/lighttpd/www/htdocs/${py}`;
+  const targetPath = process.env.NODE_ENV == "production" ? `D:\\Projects\\morningcore_webui\\public\\${py}.tar` : `/data/lighttpd/www/htdocs/${py}.tar`;
+  // 如果存在，则压缩
+  if (fs.existsSync(path)) {
+    shell.exec(`tar -cf ${targetPath} ${path}`);
+  }
+};
+
+/**
  * @description: 清除日志目录下的日志文件
  * @param {*}
  * @return {*}
@@ -160,13 +175,21 @@ const getWifiChangeStatus = () => {
   return [true, stdout];
 };
 
+const moveOTAFile = () => {
+  const result = shell.exec("getprop system.boot.wifi.mode");
+  const { stdout } = result;
+  return [true, stdout];
+};
+
 module.exports = {
   getHealthInfo,
   executeShellCommands,
   generateMapDir,
   deleteMapDir,
+  compressMapDir,
   getDevList,
   clearLogInfo,
   getModeChangeStatus,
   getWifiChangeStatus,
+  moveOTAFile,
 };
