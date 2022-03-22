@@ -1,7 +1,7 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-12-23 10:19:19
- * @LastEditTime: 2022-03-11 09:52:36
+ * @LastEditTime: 2022-03-22 18:49:37
  * @LastEditors: liqingshan
  * @FilePath: \cx_server\methods\UDP\methods.js
  * @Description:
@@ -15,6 +15,7 @@ const { getCurrentDevice } = require("../../api/device.js");
 const generateCoordinates = require("../GPS.js");
 const { IP: localIP } = require("../../config/index.js");
 const { json_stringify } = require("../../tools/common");
+const { uniqBy } = require("lodash");
 const logger = require("../../tools/logger");
 
 let topologyContent = [];
@@ -37,7 +38,12 @@ const handleReceiveTopologyUDPmessages = ({ result = null, isWatchNode = false, 
     isWatchNode,
     deviceInfo: parseDeviceInfo,
   };
-  topologyContent.push(response);
+  const index = topologyContent.findIndex((item) => item.deviceInfo && item.deviceInfo.id === parseDeviceInfo.id);
+  if (index > -1) {
+    topologyContent.splice(index, 1, response);
+  } else {
+    topologyContent.push(response);
+  }
   const data = {
     type: "topology",
     content: topologyContent,
@@ -127,6 +133,7 @@ const broadcastNodeInfo = async (senderIP, senderPort) => {
     deviceInfo,
     power,
   };
+  sendUDPMessage({ port: senderPort, address: senderIP, data });
   sendUDPMessage({ port: senderPort, address: senderIP, data });
 };
 

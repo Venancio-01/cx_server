@@ -15,6 +15,7 @@ const {
   clearLogInfo,
   getModeChangeStatus,
   getWifiChangeStatus,
+  moveOTAFile,
 } = require("./methods");
 
 const app = new Koa();
@@ -126,6 +127,30 @@ router.post("/compressMapDir", (ctx) => {
   const data = ctx.request.body;
   const { city } = data;
   compressMapDir(city);
+  ctx.body = "success";
+});
+
+/**
+ * @description: 压缩上传的地图文件夹
+ * @param {*}
+ * @return {*}
+ */
+router.post("/compressMapDir", (ctx) => {
+  const data = ctx.request.body;
+  const { city } = data;
+  compressMapDir(city);
+  ctx.body = "success";
+});
+
+/**
+ * @description: 移动上传后的 OTA 升级文件
+ * @param {*}
+ * @return {*}
+ */
+router.post("/moveOTAFile", (ctx) => {
+  const data = ctx.request.body;
+  const { fileName } = data;
+  moveOTAFile(fileName);
   ctx.body = "success";
 });
 

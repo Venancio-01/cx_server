@@ -1,7 +1,7 @@
 /*
  * @Author: liqingshan
  * @Date: 2022-03-08 13:49:07
- * @LastEditTime: 2022-03-11 10:25:26
+ * @LastEditTime: 2022-03-22 18:49:36
  * @LastEditors: liqingshan
  * @FilePath: \cx_server\config\index.js
  * @Description:
@@ -18,7 +18,7 @@ const UDP_PORT = 35678;
 const WEBSOCKET_PORT = 35679;
 // const UDP_ADDRESS = broadcastAddress;
 const getUDPAddress = () => getBroadcastAddress(IP, localNum);
-const API_BASE = process.env.NODE_ENV == "production" ? "http://i7vmyseg.dnat.tech/" : "127.0.0.1";
+const API_BASE = process.env.NODE_ENV == "production" ? "http://pnpqq1we.dnat.tech/" : "127.0.0.1";
 global.loggerSwitch = false;
 
 module.exports = {
