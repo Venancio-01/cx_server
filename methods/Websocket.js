@@ -1,9 +1,9 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-09-22 10:10:20
- * @LastEditTime: 2021-12-29 14:39:34
+ * @LastEditTime: 2022-03-16 10:06:51
  * @LastEditors: liqingshan
- * @FilePath: \morningcore_server\methods\Websocket.js
+ * @FilePath: \cx_server\methods\Websocket.js
  * @Description:
  */
 const ws = require("nodejs-websocket");
@@ -29,13 +29,11 @@ const websocket = ws.createServer((connection) => {
   });
 
   connection.on("close", (code, reason) => {
-    console.log(code, "code");
-    console.log(reason, "reason");
-    console.log("Connection closed");
+    console.log("Connection closed", code, reason);
   });
 
   connection.on("error", (error) => {
-    console.log("Connection error");
+    console.log("Connection error", error);
   });
 });
 

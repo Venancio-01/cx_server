@@ -1,7 +1,7 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-12-23 10:19:45
- * @LastEditTime: 2022-02-24 14:36:55
+ * @LastEditTime: 2022-03-21 12:25:07
  * @LastEditors: liqingshan
  * @FilePath: \morningcore_server\methods\Koa\methods.js
  * @Description:
@@ -87,6 +87,21 @@ const deleteMapDir = (city) => {
 };
 
 /**
+ * @description: 删除由 mapcache 复制的地图文件夹
+ * @param {*}
+ * @return {*}
+ */
+const compressMapDir = (city) => {
+  const py = pinyin(city, { toneType: "none", type: "array" }).join("");
+  const path = process.env.NODE_ENV == "production" ? `D:\\Projects\\morningcore_webui\\public\\${py}` : `/data/lighttpd/www/htdocs/${py}`;
+  const targetPath = process.env.NODE_ENV == "production" ? `D:\\Projects\\morningcore_webui\\public\\${py}.tar` : `/data/lighttpd/www/htdocs/${py}.tar`;
+  // 如果存在，则压缩
+  if (fs.existsSync(path)) {
+    shell.exec(`tar -cf ${targetPath} ${path}`);
+  }
+};
+
+/**
  * @description: 清除日志目录下的日志文件
  * @param {*}
  * @return {*}
@@ -96,38 +111,56 @@ const clearLogInfo = () => {
   shell.rm("-rf", path);
 };
 
-let deviceList = [];
+// let deviceList = [];
+// const getDevList = async () => {
+//   const { msg, success, response } = await sendATCommand("AT^DEVLIST?");
+//   if (success) {
+//     if (msg[0] == 0) {
+//       return [success, []];
+//     } else {
+//       const idList = msg.filter((item, index) => index > 0);
+//       const oldIdList = deviceList.map((item) => item.id);
+
+//       // 	// 检查是否有新增的设备
+//       const addList = difference(idList, oldIdList);
+//       // 	// 检查是否有移除的设备
+//       const removeList = difference(oldIdList, idList);
+
+//       if (addList.length > 0) {
+//         for (let i = 0; i < addList.length; i++) {
+//           const sn = addList[i];
+//           const [success, result] = await getDevInfo(sn);
+//           if (success) deviceList.push(result);
+//         }
+//       } else if (removeList.length > 0) {
+//         deviceList = deviceList.filter((item) => !removeList.includes(item.id));
+//       }
+
+//       // 去重
+//       deviceList = uniqBy(deviceList, "id");
+
+//       return [success, deviceList];
+//     }
+//   } else {
+//     return [success, response];
+//   }
+// };
+
 const getDevList = async () => {
   const { msg, success, response } = await sendATCommand("AT^DEVLIST?");
-  if (success) {
-    if (msg[0] == 0) {
-      return [success, []];
-    } else {
-      const idList = msg.filter((item, index) => index > 0);
-      const oldIdList = deviceList.map((item) => item.id);
+  if (!success) return [success, response];
 
-      // 	// 检查是否有新增的设备
-      const addList = difference(idList, oldIdList);
-      // 	// 检查是否有移除的设备
-      const removeList = difference(oldIdList, idList);
-
-      if (addList.length > 0) {
-        for (let i = 0; i < addList.length; i++) {
-          const sn = addList[i];
-          const [success, result] = await getDevInfo(sn);
-          if (success) deviceList.push(result);
-        }
-      } else if (removeList.length > 0) {
-        deviceList = deviceList.filter((item) => !removeList.includes(item.id));
-      }
-
-      // 去重
-      deviceList = uniqBy(deviceList, "id");
-
-      return [success, deviceList];
-    }
+  if (msg[0] == 0) {
+    return [success, []];
   } else {
-    return [success, response];
+    const idList = msg.filter((item, index) => index > 0);
+    const deviceList = [];
+    for (let i = 0; i < idList.length; i++) {
+      const sn = idList[i];
+      const [success, result] = await getDevInfo(sn);
+      if (success) deviceList.push(result);
+    }
+    return [success, deviceList];
   }
 };
 
@@ -160,13 +193,22 @@ const getWifiChangeStatus = () => {
   return [true, stdout];
 };
 
+const moveOTAFile = (fileName) => {
+  const command = `mv /data/lighttpd/www/htdocs/${fileName} /data/ota/`;
+  const result = shell.exec(command);
+  const { stdout } = result;
+  return [true, stdout];
+};
+
 module.exports = {
   getHealthInfo,
   executeShellCommands,
   generateMapDir,
   deleteMapDir,
+  compressMapDir,
   getDevList,
   clearLogInfo,
   getModeChangeStatus,
   getWifiChangeStatus,
+  moveOTAFile,
 };

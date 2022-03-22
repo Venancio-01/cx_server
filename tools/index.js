@@ -13,7 +13,7 @@ const getIPAddress = () => {
       }
     }
   } else {
-    return interfaces.br0[0].address;
+    return interfaces.br0[0] ? interfaces.br0[0].address : "";
   }
 };
 
@@ -35,6 +35,8 @@ const getNetmask = () => {
 };
 
 const getBroadcastAddress = function (netAddress, localNumber) {
+  if (!netAddress) return "";
+
   var netArr = netAddress.split(".");
   var length = netArr.length;
   var more = localNumber % 8;
