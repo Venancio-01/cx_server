@@ -23,11 +23,24 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
   (response) => {
     const needRawData = response.config.headers.needRawData;
+
     let res = response.data;
-    if (typeof res == "string") res = parseStringTypeResponse(res, needRawData);
-    else if (typeof res == "object") res = parseObjectTypeResponse(res);
-    // if (global.loggerSwitch) logger.info(json_stringify(res));
-    // console.log(res, "res");
+
+    if (typeof res === "string") {
+      try {
+        res = parseStringTypeResponse(res, needRawData);
+      } catch (error) {
+        if (global.requestLoggerSwitch) {
+          logger.info(json_stringify(res));
+        }
+        console.log(res, "res");
+        res = {
+          retcode: "1",
+          success: false,
+          msg: [],
+        };
+      }
+    } else if (typeof res === "object") res = parseObjectTypeResponse(res);
     return res;
   },
   (error) => {
@@ -138,4 +151,5 @@ const getMessageATCommand = (ATCommand) => {
 module.exports = {
   sendATCommand,
   getMessageATCommand,
+  instance,
 };

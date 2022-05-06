@@ -1,9 +1,9 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-12-27 09:51:57
- * @LastEditTime: 2021-12-29 17:36:48
+ * @LastEditTime: 2022-03-31 10:28:09
  * @LastEditors: liqingshan
- * @FilePath: \morningcore_server\tools\logger.js
+ * @FilePath: \cx_server\tools\logger.js
  * @Description:
  */
 
@@ -21,7 +21,8 @@ module.exports = createLogger({
         format.align(),
         format.printf((info) => `${info.level}: ${[info.timestamp]}: ${info.message}`)
       ),
-      maxsize: 1024 * 20,
+      maxSize: "20m",
+      maxFiles: "2d",
     }),
   ],
 });

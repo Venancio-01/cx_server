@@ -1,7 +1,7 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-12-23 10:19:45
- * @LastEditTime: 2022-03-22 18:49:39
+ * @LastEditTime: 2022-03-24 15:57:12
  * @LastEditors: liqingshan
  * @FilePath: \cx_server\methods\Koa\methods.js
  * @Description:
@@ -111,58 +111,58 @@ const clearLogInfo = () => {
   shell.rm("-rf", path);
 };
 
-// let deviceList = [];
-// const getDevList = async () => {
-//   const { msg, success, response } = await sendATCommand("AT^DEVLIST?");
-//   if (success) {
-//     if (msg[0] == 0) {
-//       return [success, []];
-//     } else {
-//       const idList = msg.filter((item, index) => index > 0);
-//       const oldIdList = deviceList.map((item) => item.id);
-
-//       // 	// 检查是否有新增的设备
-//       const addList = difference(idList, oldIdList);
-//       // 	// 检查是否有移除的设备
-//       const removeList = difference(oldIdList, idList);
-
-//       if (addList.length > 0) {
-//         for (let i = 0; i < addList.length; i++) {
-//           const sn = addList[i];
-//           const [success, result] = await getDevInfo(sn);
-//           if (success) deviceList.push(result);
-//         }
-//       } else if (removeList.length > 0) {
-//         deviceList = deviceList.filter((item) => !removeList.includes(item.id));
-//       }
-
-//       // 去重
-//       deviceList = uniqBy(deviceList, "id");
-
-//       return [success, deviceList];
-//     }
-//   } else {
-//     return [success, response];
-//   }
-// };
-
+let deviceList = [];
 const getDevList = async () => {
   const { msg, success, response } = await sendATCommand("AT^DEVLIST?");
-  if (!success) return [success, response];
+  if (success) {
+    if (msg[0] == 0) {
+      return [success, []];
+    } else {
+      const idList = msg.filter((item, index) => index > 0);
+      const oldIdList = deviceList.map((item) => item.id);
 
-  if (msg[0] == 0) {
-    return [success, []];
-  } else {
-    const idList = msg.filter((item, index) => index > 0);
-    const deviceList = [];
-    for (let i = 0; i < idList.length; i++) {
-      const sn = idList[i];
-      const [success, result] = await getDevInfo(sn);
-      if (success) deviceList.push(result);
+      // 	// 检查是否有新增的设备
+      const addList = difference(idList, oldIdList);
+      // 	// 检查是否有移除的设备
+      const removeList = difference(oldIdList, idList);
+
+      if (addList.length > 0) {
+        for (let i = 0; i < addList.length; i++) {
+          const sn = addList[i];
+          const [success, result] = await getDevInfo(sn);
+          if (success) deviceList.push(result);
+        }
+      } else if (removeList.length > 0) {
+        deviceList = deviceList.filter((item) => !removeList.includes(item.id));
+      }
+
+      // 去重
+      deviceList = uniqBy(deviceList, "id");
+
+      return [success, deviceList];
     }
-    return [success, deviceList];
+  } else {
+    return [success, response];
   }
 };
+
+// const getDevList = async () => {
+//   const { msg, success, response } = await sendATCommand("AT^DEVLIST?");
+//   if (!success) return [success, response];
+
+//   if (msg[0] == 0) {
+//     return [success, []];
+//   } else {
+//     const idList = msg.filter((item, index) => index > 0);
+//     const deviceList = [];
+//     for (let i = 0; i < idList.length; i++) {
+//       const sn = idList[i];
+//       const [success, result] = await getDevInfo(sn);
+//       if (success) deviceList.push(result);
+//     }
+//     return [success, deviceList];
+//   }
+// };
 
 const getDevInfo = async (id) => {
   const { msg, success } = await sendATCommand(`AT^GETDEV=${id}`);
@@ -193,14 +193,9 @@ const getWifiChangeStatus = () => {
   return [true, stdout];
 };
 
-<<<<<<< HEAD
-const moveOTAFile = () => {
-  const result = shell.exec("getprop system.boot.wifi.mode");
-=======
 const moveOTAFile = (fileName) => {
   const command = `mv /data/lighttpd/www/htdocs/${fileName} /data/ota/`;
   const result = shell.exec(command);
->>>>>>> 61d147356be5b073948377063a9ee6891a0c3324
   const { stdout } = result;
   return [true, stdout];
 };

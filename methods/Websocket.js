@@ -1,7 +1,7 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-09-22 10:10:20
- * @LastEditTime: 2022-03-16 10:06:51
+ * @LastEditTime: 2022-03-31 10:26:55
  * @LastEditors: liqingshan
  * @FilePath: \cx_server\methods\Websocket.js
  * @Description:
@@ -51,10 +51,10 @@ const bindWebsocketServer = () => {
  * @param {*}
  * @return {*}
  */
-const senWebsocketMessage = (content) => {
+const sendWebsocketMessage = (content) => {
   websocket.connections.forEach((connection) => {
     connection.sendText(json_stringify(content));
   });
 };
 
-module.exports = { bindWebsocketServer, senWebsocketMessage };
+module.exports = { bindWebsocketServer, sendWebsocketMessage };

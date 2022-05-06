@@ -1,9 +1,9 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-12-07 14:46:14
- * @LastEditTime: 2021-12-23 15:19:56
+ * @LastEditTime: 2022-03-25 13:45:32
  * @LastEditors: liqingshan
- * @FilePath: \morningcore_server\tools\common.js
+ * @FilePath: \cx_server\tools\common.js
  * @Description:
  */
 

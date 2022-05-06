@@ -1,9 +1,9 @@
 /*
  * @Author: liqingshan
  * @Date: 2021-10-29 16:00:34
- * @LastEditTime: 2021-12-28 16:42:30
+ * @LastEditTime: 2022-03-31 10:09:32
  * @LastEditors: liqingshan
- * @FilePath: \morningcore_server\api\device.js
+ * @FilePath: \cx_server\api\device.js
  * @Description:
  */
 const { sendATCommand } = require("./index.js");

@@ -119,19 +119,7 @@ router.post("/deleteMapDir", (ctx) => {
   ctx.body = "success";
 });
 /**
- * @description: 压缩上传的地图文件夹
- * @param {*}
- * @return {*}
- */
-router.post("/compressMapDir", (ctx) => {
-  const data = ctx.request.body;
-  const { city } = data;
-  compressMapDir(city);
-  ctx.body = "success";
-});
-
-/**
- * @description: 压缩上传的地图文件夹
+ * @description: 压缩地图文件夹
  * @param {*}
  * @return {*}
  */
@@ -173,9 +161,14 @@ router.get("/getDevList", async (ctx) => {
  * @param {*}
  * @return {*}
  */
-router.get("/toggleLoggerSwitch", async (ctx) => {
-  global.loggerSwitch = !global.loggerSwitch;
-  const msg = global.loggerSwitch ? "logger is open" : "logger is off";
+router.get("/toggleLoggerSwitch/:type", async (ctx) => {
+  const { type } = ctx.params;
+  let msg = "";
+  if (type) {
+    if (type === "request") global.requestLoggerSwitch = !global.requestLoggerSwitch;
+    else if (type === "topology") global.loggerSwitch = !global.loggerSwitch;
+    msg = global.loggerSwitch ? `${type} logger is open` : `${type} logger is off`;
+  }
   ctx.body = {
     code: 0,
     data: msg,
